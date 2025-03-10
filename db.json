@@ -1,0 +1,54 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "Name": "Trung",
+      "Email": "nguyentrung135246@gmail.com",
+      "Password": "123456"
+    },
+    {
+      "id": "b5fa",
+      "Name": "a",
+      "Email": "a@gmail.com",
+      "Password": "a"
+    },
+    {
+      "id": "ee5b",
+      "Name": "a1",
+      "Email": "a1@gmail.com",
+      "Password": "a1"
+    },
+    {
+      "id": "f14f",
+      "Name": "111",
+      "Email": "111@gmail.com",
+      "Password": "111"
+    },
+    {
+      "id": "466a",
+      "Name": "abc",
+      "Email": "abc@gmail.com",
+      "Password": "123456"
+    }
+  ],
+  "products": [
+    {
+      "Name": "Ao Sweeter123",
+      "Price": "20000",
+      "Image": "https://naidecor.vn/wp-content/uploads/2020/01/ct00192-549k.jpg",
+      "id": "1"
+    },
+    {
+      "Name": "Ao dan choi ",
+      "Price": "200000",
+      "Image": "https://naidecor.vn/wp-content/uploads/2020/01/ct00192-549k.jpg",
+      "id": "3"
+    },
+    {
+      "id": "00b2",
+      "Name": "Quan dan choi",
+      "Price": "111111",
+      "Image": "https://columbiasportswear.ph/cdn/shop/files/1000450969_01.jpg?v=1695895408"
+    }
+  ]
+}
