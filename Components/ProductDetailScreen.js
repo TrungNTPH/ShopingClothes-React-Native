@@ -1,100 +1,88 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, ImageBackground } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, Alert, ImageBackground, ScrollView, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/AntDesign';
 import { getProductById } from './apiServices';
-import { useEffect,useState } from 'react';
-import { ScrollView } from 'react-native-gesture-handler';
 
-export default function ProductDetailScreen({route, navigation}) {
-    // chạy lại git 
-
+export default function ProductDetailScreen({ route, navigation }) {
     const { id } = route.params;
-    console.log("🆔 ID sản phẩm nhận được:", id);
-    const [products, setProduct] = useState(null);
+    const [product, setProduct] = useState(null);
+
+    // Lấy dữ liệu sản phẩm theo ID
     const getProduct = async () => {
-        if (!id) {
-            console.error("❌ Lỗi: ID sản phẩm không hợp lệ!");
-            return;
-        }
-        
         try {
-            console.log("🔄 Gọi API để lấy sản phẩm...");
             const productData = await getProductById(id);
-            
-            if (!productData) {
-                console.error("❌ API không trả về dữ liệu!");
-                return;
+            if (productData) {
+                setProduct(productData);
+            } else {
+                console.error("❌ Không tìm thấy sản phẩm!");
             }
-    
-            console.log("✅ Dữ liệu sản phẩm sau khi gọi API:", productData);
-            setProduct(productData);
         } catch (error) {
             console.error("❌ Lỗi khi lấy sản phẩm:", error);
         }
     };
-    
 
     useEffect(() => {
-        console.log("test");
         getProduct();
-    }, [])
+    }, []);
+
+    // Thêm sản phẩm vào giỏ hàng
+    const addToCart = async () => {
+        try {
+            let cart = await AsyncStorage.getItem('cart');
+            cart = cart ? JSON.parse(cart) : [];
+
+            // Kiểm tra nếu sản phẩm đã tồn tại trong giỏ hàng
+            const existingItem = cart.find(item => item.id === product.id);
+            if (existingItem) {
+                Alert.alert("Sản phẩm đã có trong giỏ hàng!");
+                return;
+            }
+
+            cart.push(product);
+            await AsyncStorage.setItem('cart', JSON.stringify(cart));
+            Alert.alert("Thêm vào giỏ hàng thành công!");
+        } catch (error) {
+            console.error("Lỗi khi thêm vào giỏ hàng:", error);
+        }
+    };
 
     return (
         <ScrollView>
+            <ImageBackground source={require('../assets/bgtet.jpeg')} style={styles.background}>
+                <View style={styles.container}>
+                    {product === null ? (
+                        <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
+                    ) : (
+                        <>
+                            <Image source={{ uri: product?.Image }} style={styles.image} />
+                            <View style={styles.textContainer}>
+                                <Text style={styles.productName}>{product?.Name}</Text>
+                                <Text style={styles.productPrice}>{product?.Price} VNĐ</Text>
+                            </View>
+                            <Text style={styles.productDescription}>{product?.Description}</Text>
 
+                            {/* Nút Mua & Thêm vào giỏ hàng */}
+                            <View style={styles.buttonsContainer}>
+                                <TouchableOpacity style={styles.button} onPress={async () => {
+                                    await addToCart();
+                                    navigation.navigate("MyCartScreen");
+                                }}>
+                                    <Text style={styles.buttonText}>Mua ngay</Text>
+                                </TouchableOpacity>
 
-        <ImageBackground source={require('../assets/bgtet.jpeg')} style={styles.background}>
-            <View style={styles.container}>
-                {/* Kiểm tra nếu chưa có dữ liệu thì hiển thị loading */}
-                {products === null ? (  
-                    <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>  
-                ) : (  
-                    <>
-                        {/* Ảnh sản phẩm */}
-                        <Image source={{  uri: products?.Image || 'https://example.com/default.jpg' }} style={styles.image} />
-    
-                        {/* Tên sản phẩm & giá */}
-                        <View style={styles.textContainer}>
-                            <Text style={styles.productName}>{products?.Name || 'Tên sản phẩm'}</Text>
-                            <Text style={styles.productPrice}>{products?.Price || 'Giá sản phẩm'} VNĐ</Text>
-                        </View>
-    
-                        {/* Mô tả sản phẩm */}
-                        <Text style={styles.productDescription}>{products?.Description || 'Mô tả sản phẩm'}</Text>
-    
-                        {/* Chọn size */}
-                        <View style={styles.containerSize}>
-                            <Text style={styles.size}>Size:</Text>
-                            <TouchableOpacity style={styles.sizeButton}><Text style={styles.sizeText}>S</Text></TouchableOpacity>
-                            <TouchableOpacity style={styles.sizeButton}><Text style={styles.sizeText}>M</Text></TouchableOpacity>
-                            <TouchableOpacity style={styles.sizeButton}><Text style={styles.sizeText}>L</Text></TouchableOpacity>
-                        </View>
-    
-                        {/* Chọn số lượng */}
-                        <View style={styles.quantityControl}>
-                            <TouchableOpacity style={styles.quantityButton}>
-                                <Icon name="minus" size={18} color="black" />
-                            </TouchableOpacity>
-                            <Text style={styles.quantityText}>1</Text>
-                            <TouchableOpacity style={styles.quantityButton}>
-                                <Icon name="plus" size={18} color="black" />
-                            </TouchableOpacity>
-                        </View>
-    
-                        {/* Nút Mua & Thêm vào giỏ hàng */}
-                        <View style={styles.buttonsContainer}>
-                            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("MyCartScreen")}><Text style={styles.buttonText}>Mua ngay</Text></TouchableOpacity>
-                            <TouchableOpacity style={[styles.button, styles.buttonOutline]} onPress={() => navigation.navigate("MyCartScreen")}>
-                                <Text style={[styles.buttonText, styles.buttonTextOutline]}>Thêm vào giỏ hàng</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </>
-                )}
-            </View>
-        </ImageBackground>
+                                <TouchableOpacity style={[styles.button, styles.buttonOutline]} onPress={addToCart}>
+                                    <Text style={[styles.buttonText, styles.buttonTextOutline]}>Thêm vào giỏ hàng</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </>
+                    )}
+                </View>
+            </ImageBackground>
         </ScrollView>
     );
-    
 }
+
 
 const styles = StyleSheet.create({
     background: {

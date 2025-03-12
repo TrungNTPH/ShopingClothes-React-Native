@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const urlApi = "http://10.24.9.244:3000/users";
-const urlApiProduct = "http://10.24.9.244:3000/products";
+const urlApi = "http://192.168.1.12:3000/users";
+const urlApiProduct = "http://192.168.1.12:3000/products";
     // chạy lại git 
     // chạy lại git 
     // chạy lại git 

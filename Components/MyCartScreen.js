@@ -1,41 +1,82 @@
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, Image, TextInput, ImageBackground } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, FlatList, Alert, ImageBackground, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function MyCartScreen({navigation}) {
-    const products = [
-        { id: '1', name: 'Sản phẩm A', price: '100.000đ', image: 'https://naidecor.vn/wp-content/uploads/2020/01/ct00192-549k.jpg' },
-        { id: '2', name: 'Sản phẩm B', price: '200.000đ', image: 'https://naidecor.vn/wp-content/uploads/2020/01/ct00192-549k.jpg' },
-        { id: '3', name: 'Sản phẩm C', price: '150.000đ', image: 'https://naidecor.vn/wp-content/uploads/2020/01/ct00192-549k.jpg' },
-    ];
-    // chạy lại git 
+export default function MyCartScreen({ navigation }) {
+    const [cartItems, setCartItems] = useState([]);
+
+    // Lấy danh sách giỏ hàng từ AsyncStorage
+    const loadCart = async () => {
+        try {
+            const cart = await AsyncStorage.getItem('cart');
+            setCartItems(cart ? JSON.parse(cart) : []);
+        } catch (error) {
+            console.error("Lỗi khi lấy giỏ hàng:", error);
+        }
+    };
+
+    useEffect(() => {
+        loadCart();
+    }, []);
+
+    // Xóa sản phẩm khỏi giỏ hàng
+    const removeFromCart = async (id) => {
+        try {
+            let cart = await AsyncStorage.getItem('cart');
+            cart = cart ? JSON.parse(cart) : [];
+            const newCart = cart.filter(item => item.id !== id);
+            await AsyncStorage.setItem('cart', JSON.stringify(newCart));
+            setCartItems(newCart);
+            Alert.alert("Sản phẩm đã được xóa khỏi giỏ hàng!");
+        } catch (error) {
+            console.error("Lỗi khi xóa sản phẩm:", error);
+        }
+    };
+
+    // Xóa toàn bộ giỏ hàng
+    const clearCart = async () => {
+        try {
+            await AsyncStorage.removeItem('cart');
+            setCartItems([]);
+            Alert.alert("Giỏ hàng đã được làm trống!");
+        } catch (error) {
+            console.error("Lỗi khi xóa giỏ hàng:", error);
+        }
+    };
 
     return (
         <ImageBackground source={require('../assets/bgtet.jpeg')} style={styles.background}>
             <View style={styles.overlay}>
                 <Text style={styles.title}>Giỏ hàng của bạn</Text>
-                <FlatList
-                    nestedScrollEnabled={true}
-                    showsVerticalScrollIndicator={false}
-                    data={products}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <View style={styles.productItem2}>
-                            <Image source={{ uri: item.image }} style={styles.productImage} />
-                            <View style={styles.productInfo}>
-                                <Text style={styles.productName}>{item.name}</Text>
-                                <Text style={styles.productPrice}>{item.price}</Text>
+
+                {cartItems.length === 0 ? (
+                    <Text style={styles.emptyCartText}>Giỏ hàng trống</Text>
+                ) : (
+                    <FlatList
+                        data={cartItems}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={({ item }) => (
+                            <View style={styles.productItem2}>
+                                <Image source={{ uri: item.Image }} style={styles.productImage} />
+                                <View style={styles.productInfo}>
+                                    <Text style={styles.productName}>{item.Name}</Text>
+                                    <Text style={styles.productPrice}>{item.Price} VNĐ</Text>
+                                </View>
+                                <TouchableOpacity style={styles.deleteButton} onPress={() => removeFromCart(item.id)}>
+                                    <Image source={require('../assets/delete.png')} />
+                                </TouchableOpacity>
                             </View>
-                            
-                            <TouchableOpacity style={styles.deleteButton} >
-                                <Image source={require('../assets/delete.png')}></Image>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                />
+                        )}
+                    />
+                )}
+
+                {/* Nút Thanh Toán & Xóa Giỏ Hàng */}
                 <View style={styles.buttonsContainer}>
-                    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("PaymentScreen")}>
+                    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("PaymentScreen", { cartItems })}>
                         <Text style={styles.buttonText}>Thanh toán</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.buttonOutline]}>
+
+                    <TouchableOpacity style={[styles.button, styles.buttonOutline]} onPress={clearCart}>
                         <Text style={[styles.buttonText, styles.buttonTextOutline]}>Xóa hết</Text>
                     </TouchableOpacity>
                 </View>
@@ -43,6 +84,7 @@ export default function MyCartScreen({navigation}) {
         </ImageBackground>
     );
 }
+
 
 const styles = StyleSheet.create({
     background: {
